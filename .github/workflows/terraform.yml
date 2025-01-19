@@ -16,21 +16,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Write Terraform Cloud Token
-      - name: Write Terraform Cloud Token
-        run: |
-          mkdir -p ~/.terraform.d
-          echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TFE_TOKEN }}"}}}' > ~/.terraform.d/credentials.tfrc.json
+      # Step 2: Authenticate with Terraform Cloud
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
 
-      # Step 3: Initialize Terraform
+      # Step 3: Terraform Init
       - name: Terraform Init
         run: terraform init
+        env:
+          TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
 
       # Step 4: Terraform Plan
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -out=tfplan
+        env:
+          TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
 
       # Step 5: Terraform Apply (only on main branch)
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve tfplan
+        env:
+          TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
