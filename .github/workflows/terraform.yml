@@ -3,8 +3,8 @@ name: Terraform Cloud Pipeline
 on:
   push:
     branches:
-      - main  # Trigger on pushes to the main branch
-  pull_request:  # Trigger on pull requests
+      - main
+  pull_request:
 
 jobs:
   terraform:
@@ -16,29 +16,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Trigger Terraform Cloud Workflow
-      - name: Run Terraform with Terraform Cloud
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
-        env:
-          TFE_TOKEN: ${{ secrets.TFE_TOKEN }} # Terraform Cloud API Token
+      # Step 2: Write Terraform Cloud Token
+      - name: Write Terraform Cloud Token
+        run: |
+          mkdir -p ~/.terraform.d
+          echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TFE_TOKEN }}"}}}' > ~/.terraform.d/credentials.tfrc.json
 
-      # Step 3: Run Terraform Init
+      # Step 3: Initialize Terraform
       - name: Terraform Init
         run: terraform init
-        env:
-          TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
 
       # Step 4: Terraform Plan
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
-        env:
-          TFE_TOKEN: ${{ secrets.TFE_TOKEN }} # Terraform Cloud API Token
+        run: terraform plan
 
-      # Step 5: Terraform Apply
+      # Step 5: Terraform Apply (only on main branch)
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve tfplan
-        env:
-          TFE_TOKEN: ${{ secrets.TFE_TOKEN }} # Terraform Cloud API Token
+        run: terraform apply -auto-approve
