@@ -6,7 +6,7 @@ terraform {
     }
   }
   backend "remote" {
-    organization = "your-terraform-cloud-organization"
+    organization = "azureorg"
 
     workspaces {
       name = "azure-resource-group"
