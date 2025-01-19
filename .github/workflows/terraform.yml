@@ -1,45 +1,42 @@
-name: Terraform CI/CD
+name: Terraform Cloud Pipeline
 
 on:
   push:
     branches:
-      - main
-  pull_request:
+      - main  # Trigger on pushes to the main branch
+  pull_request:  # Trigger on pull requests
 
 jobs:
   terraform:
-    name: 'Terraform Workflow'
+    name: Terraform Workflow
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Checkout code
-    - name: Checkout code
-      uses: actions/checkout@v3
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    # Step 2: Setup Terraform
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.5.0 # Specify the required Terraform version
+      # Step 2: Trigger Terraform Cloud Workflow
+      - name: Run Terraform with Terraform Cloud
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+        env:
+          TFE_TOKEN: ${{ secrets.TFE_TOKEN }} # Terraform Cloud API Token
 
-    # Step 3: Terraform Init
-    - name: Terraform Init
-      run: terraform init
+      # Step 3: Run Terraform Init
+      - name: Terraform Init
+        run: terraform init
 
-    # Step 4: Terraform Format Check
-    - name: Terraform Format Check
-      run: terraform fmt -check
+      # Step 4: Terraform Plan
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+        env:
+          TFE_TOKEN: ${{ secrets.TFE_TOKEN }} # Terraform Cloud API Token
 
-    # Step 5: Terraform Plan
-    - name: Terraform Plan
-      run: terraform plan
-
-    # Step 6: Terraform Apply (only on main branch)
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/main'
-      run: terraform apply -auto-approve
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      # Step 5: Terraform Apply
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve tfplan
+        env:
+          TFE_TOKEN: ${{ secrets.TFE_TOKEN }} # Terraform Cloud API Token
