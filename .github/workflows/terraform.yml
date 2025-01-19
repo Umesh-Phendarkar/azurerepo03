@@ -27,6 +27,8 @@ jobs:
       # Step 3: Run Terraform Init
       - name: Terraform Init
         run: terraform init
+        env:
+          TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
 
       # Step 4: Terraform Plan
       - name: Terraform Plan
