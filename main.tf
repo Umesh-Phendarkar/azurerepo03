@@ -9,7 +9,7 @@ terraform {
     organization = "azureorg"
 
     workspaces {
-      name = "azure-resource-group"
+      name = "cicdwork"
     }
   }
 }
